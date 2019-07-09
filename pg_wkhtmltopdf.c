@@ -43,7 +43,8 @@ EXTENSION(wkhtmltopdf) {
     long len;
     if (!PG_ARGISNULL(0)) html = TextDatumGetCString(PG_GETARG_DATUM(0));
     if (!PG_ARGISNULL(1)) url = TextDatumGetCString(PG_GETARG_DATUM(1));
-    if (!html && ! url) ereport(ERROR, (errmsg("specify html or url!")));
+    if (!html && !url) ereport(ERROR, (errmsg("specify html or url!")));
+    if (html && url) ereport(ERROR, (errmsg("specify either html or either url!")));
     (void)wkhtmltopdf_init(0);
     if (!(global_settings = wkhtmltopdf_create_global_settings())) ereport(ERROR, (errmsg("!global_settings")));
     if (!(object_settings = wkhtmltopdf_create_object_settings())) ereport(ERROR, (errmsg("!object_settings")));
