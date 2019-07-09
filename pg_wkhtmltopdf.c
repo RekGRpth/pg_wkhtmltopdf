@@ -45,10 +45,10 @@ EXTENSION(wkhtmltopdf) {
     if (!PG_ARGISNULL(1)) url = TextDatumGetCString(PG_GETARG_DATUM(1));
     if (!html && !url) ereport(ERROR, (errmsg("specify html or url!")));
     if (html && url) ereport(ERROR, (errmsg("specify either html or either url!")));
-    (void)wkhtmltopdf_init(0);
+    if (!wkhtmltopdf_init(0)) ereport(ERROR, (errmsg("!wkhtmltopdf_init")));
     if (!(global_settings = wkhtmltopdf_create_global_settings())) ereport(ERROR, (errmsg("!global_settings")));
     if (!(object_settings = wkhtmltopdf_create_object_settings())) ereport(ERROR, (errmsg("!object_settings")));
-    if (url) (void)wkhtmltopdf_set_object_setting(object_settings, "page", (const char *)url);
+    if (url) if (!wkhtmltopdf_set_object_setting(object_settings, "page", (const char *)url)) ereport(ERROR, (errmsg("!wkhtmltopdf_set_object_setting")));
     if (!(converter = wkhtmltopdf_create_converter(global_settings))) ereport(ERROR, (errmsg("!converter")));
 //    (void)wkhtmltopdf_set_progress_changed_callback(converter, progress_changed_callback);
 //    (void)wkhtmltopdf_set_phase_changed_callback(converter, phase_changed_callback);
@@ -61,7 +61,7 @@ EXTENSION(wkhtmltopdf) {
     (void)wkhtmltopdf_destroy_converter(converter);
     (void)wkhtmltopdf_destroy_object_settings(object_settings);
     (void)wkhtmltopdf_destroy_global_settings(global_settings);
-    (void)wkhtmltopdf_deinit();
+    if (!wkhtmltopdf_deinit()) ereport(ERROR, (errmsg("!wkhtmltopdf_deinit")));
     if (html) (void)pfree(html);
     if (url) (void)pfree(url);
     PG_RETURN_TEXT_P(cstring_to_text_with_len((const char *)data, len));
