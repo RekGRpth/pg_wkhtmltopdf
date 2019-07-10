@@ -22,7 +22,7 @@ PG_MODULE_MAGIC;
 static void error_callback(wkhtmltopdf_converter *converter, const char *msg) {
 //    fprintf(stderr, "error_callback: %s\n", msg);
 //    fflush(stderr);
-    ereport(ERROR, (errmsg("%s", msg)));
+    ereport(WARNING, (errmsg("%s", msg)));
 }
 
 static void warning_callback(wkhtmltopdf_converter *converter, const char *msg) {
