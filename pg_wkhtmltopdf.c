@@ -8,6 +8,18 @@
 
 PG_MODULE_MAGIC;
 
+wkhtmltopdf_global_settings *global_settings = NULL;
+
+void _PG_init(void); void _PG_init(void) {
+    if (!wkhtmltopdf_init(0)) ereport(ERROR, (errmsg("!wkhtmltopdf_init")));
+    if (!(global_settings = wkhtmltopdf_create_global_settings())) ereport(ERROR, (errmsg("!global_settings")));
+}
+
+void _PG_fini(void); void _PG_fini(void) {
+    (void)wkhtmltopdf_destroy_global_settings(global_settings);
+    if (!wkhtmltopdf_deinit()) ereport(ERROR, (errmsg("!wkhtmltopdf_deinit")));
+}
+
 /*static void progress_changed_callback(wkhtmltopdf_converter *converter, int p) {
     printf("progress_changed_callback: %3d%%\n", p);
     fflush(stdout);
@@ -38,15 +50,12 @@ static void warning_callback(wkhtmltopdf_converter *converter, const char *msg) 
 
 EXTENSION(wkhtmltopdf) {
     char *html;
-    wkhtmltopdf_global_settings *global_settings;
     wkhtmltopdf_object_settings *object_settings;
     wkhtmltopdf_converter *converter;
     const unsigned char *data;
     long len;
     if (PG_ARGISNULL(0)) ereport(ERROR, (errmsg("html is null!")));
     html = TextDatumGetCString(PG_GETARG_DATUM(0));
-    if (!wkhtmltopdf_init(0)) ereport(ERROR, (errmsg("!wkhtmltopdf_init")));
-    if (!(global_settings = wkhtmltopdf_create_global_settings())) ereport(ERROR, (errmsg("!global_settings")));
     if (!(object_settings = wkhtmltopdf_create_object_settings())) ereport(ERROR, (errmsg("!object_settings")));
     if (!wkhtmltopdf_set_object_setting(object_settings, "page", (const char *)html)) ereport(ERROR, (errmsg("!wkhtmltopdf_set_object_setting")));
     if (!(converter = wkhtmltopdf_create_converter(global_settings))) ereport(ERROR, (errmsg("!converter")));
@@ -60,8 +69,6 @@ EXTENSION(wkhtmltopdf) {
     if (!(len = wkhtmltopdf_get_output(converter, &data))) ereport(ERROR, (errmsg("!len")));
     (void)wkhtmltopdf_destroy_converter(converter);
     (void)wkhtmltopdf_destroy_object_settings(object_settings);
-    (void)wkhtmltopdf_destroy_global_settings(global_settings);
-    if (!wkhtmltopdf_deinit()) ereport(ERROR, (errmsg("!wkhtmltopdf_deinit")));
     (void)pfree(html);
     PG_RETURN_TEXT_P(cstring_to_text_with_len((const char *)data, len));
 }
