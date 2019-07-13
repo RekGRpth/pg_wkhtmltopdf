@@ -51,13 +51,10 @@ static void warning_callback(wkhtmltopdf_converter *converter, const char *msg) 
     fflush(stdout);
 }*/
 
-EXTENSION(wkhtmltopdf) {
-    char *html;
+EXTENSION(pg_wkhtmltopdf_convert) {
     wkhtmltopdf_converter *converter;
     const unsigned char *data;
     long len;
-    if (PG_ARGISNULL(0)) ereport(ERROR, (errmsg("html is null!")));
-    html = TextDatumGetCString(PG_GETARG_DATUM(0));
     if (!(converter = wkhtmltopdf_create_converter(global_settings))) ereport(ERROR, (errmsg("!converter")));
 //    (void)wkhtmltopdf_set_progress_changed_callback(converter, progress_changed_callback);
 //    (void)wkhtmltopdf_set_phase_changed_callback(converter, phase_changed_callback);
@@ -68,7 +65,6 @@ EXTENSION(wkhtmltopdf) {
     if (!wkhtmltopdf_convert(converter)) ereport(ERROR, (errmsg("!wkhtmltopdf_convert")));
     if (!(len = wkhtmltopdf_get_output(converter, &data))) ereport(ERROR, (errmsg("!len")));
     (void)wkhtmltopdf_destroy_converter(converter);
-    (void)pfree(html);
     PG_RETURN_TEXT_P(cstring_to_text_with_len((const char *)data, len));
 }
 
