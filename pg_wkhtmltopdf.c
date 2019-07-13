@@ -72,3 +72,15 @@ EXTENSION(wkhtmltopdf) {
     (void)pfree(html);
     PG_RETURN_TEXT_P(cstring_to_text_with_len((const char *)data, len));
 }
+
+EXTENSION(pg_wkhtmltopdf_set_global_setting) {
+    char *name, *value;
+    if (PG_ARGISNULL(0)) ereport(ERROR, (errmsg("name is null!")));
+    name = TextDatumGetCString(PG_GETARG_DATUM(0));
+    if (PG_ARGISNULL(1)) ereport(ERROR, (errmsg("value is null!")));
+    value = TextDatumGetCString(PG_GETARG_DATUM(1));
+    if (!wkhtmltopdf_set_global_setting(global_settings, (const char *)name, (const char *)value)) ereport(ERROR, (errmsg("!wkhtmltopdf_set_global_setting")));
+    (void)pfree(name);
+    (void)pfree(value);
+    PG_RETURN_VOID();
+}
