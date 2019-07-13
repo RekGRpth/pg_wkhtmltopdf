@@ -9,13 +9,16 @@
 PG_MODULE_MAGIC;
 
 wkhtmltopdf_global_settings *global_settings = NULL;
+wkhtmltopdf_object_settings *object_settings = NULL;
 
 void _PG_init(void); void _PG_init(void) {
     if (!wkhtmltopdf_init(0)) ereport(ERROR, (errmsg("!wkhtmltopdf_init")));
     if (!(global_settings = wkhtmltopdf_create_global_settings())) ereport(ERROR, (errmsg("!global_settings")));
+    if (!(object_settings = wkhtmltopdf_create_object_settings())) ereport(ERROR, (errmsg("!object_settings")));
 }
 
 void _PG_fini(void); void _PG_fini(void) {
+    (void)wkhtmltopdf_destroy_object_settings(object_settings);
     (void)wkhtmltopdf_destroy_global_settings(global_settings);
     if (!wkhtmltopdf_deinit()) ereport(ERROR, (errmsg("!wkhtmltopdf_deinit")));
 }
@@ -50,14 +53,11 @@ static void warning_callback(wkhtmltopdf_converter *converter, const char *msg) 
 
 EXTENSION(wkhtmltopdf) {
     char *html;
-    wkhtmltopdf_object_settings *object_settings;
     wkhtmltopdf_converter *converter;
     const unsigned char *data;
     long len;
     if (PG_ARGISNULL(0)) ereport(ERROR, (errmsg("html is null!")));
     html = TextDatumGetCString(PG_GETARG_DATUM(0));
-    if (!(object_settings = wkhtmltopdf_create_object_settings())) ereport(ERROR, (errmsg("!object_settings")));
-    if (!wkhtmltopdf_set_object_setting(object_settings, "page", (const char *)html)) ereport(ERROR, (errmsg("!wkhtmltopdf_set_object_setting")));
     if (!(converter = wkhtmltopdf_create_converter(global_settings))) ereport(ERROR, (errmsg("!converter")));
 //    (void)wkhtmltopdf_set_progress_changed_callback(converter, progress_changed_callback);
 //    (void)wkhtmltopdf_set_phase_changed_callback(converter, phase_changed_callback);
@@ -68,7 +68,6 @@ EXTENSION(wkhtmltopdf) {
     if (!wkhtmltopdf_convert(converter)) ereport(ERROR, (errmsg("!wkhtmltopdf_convert")));
     if (!(len = wkhtmltopdf_get_output(converter, &data))) ereport(ERROR, (errmsg("!len")));
     (void)wkhtmltopdf_destroy_converter(converter);
-    (void)wkhtmltopdf_destroy_object_settings(object_settings);
     (void)pfree(html);
     PG_RETURN_TEXT_P(cstring_to_text_with_len((const char *)data, len));
 }
@@ -80,6 +79,18 @@ EXTENSION(pg_wkhtmltopdf_set_global_setting) {
     if (PG_ARGISNULL(1)) ereport(ERROR, (errmsg("value is null!")));
     value = TextDatumGetCString(PG_GETARG_DATUM(1));
     if (!wkhtmltopdf_set_global_setting(global_settings, (const char *)name, (const char *)value)) ereport(ERROR, (errmsg("!wkhtmltopdf_set_global_setting")));
+    (void)pfree(name);
+    (void)pfree(value);
+    PG_RETURN_VOID();
+}
+
+EXTENSION(pg_wkhtmltopdf_set_object_setting) {
+    char *name, *value;
+    if (PG_ARGISNULL(0)) ereport(ERROR, (errmsg("name is null!")));
+    name = TextDatumGetCString(PG_GETARG_DATUM(0));
+    if (PG_ARGISNULL(1)) ereport(ERROR, (errmsg("value is null!")));
+    value = TextDatumGetCString(PG_GETARG_DATUM(1));
+    if (!wkhtmltopdf_set_object_setting(object_settings, (const char *)name, (const char *)value)) ereport(ERROR, (errmsg("!wkhtmltopdf_set_object_setting")));
     (void)pfree(name);
     (void)pfree(value);
     PG_RETURN_VOID();
