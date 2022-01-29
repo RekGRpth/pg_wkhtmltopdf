@@ -59,7 +59,6 @@ EXTENSION(pg_wkhtmltopdf_convert) {
     if (!(len = wkhtmltopdf_get_output(converter, (const unsigned char **)&data))) ereport(ERROR, (errmsg("!wkhtmltopdf_get_output")));
     pdf = cstring_to_text_with_len(data, len);
     wkhtmltopdf_destroy_converter(converter);
-    free(data);
     PG_RETURN_BYTEA_P(pdf);
 }
 
