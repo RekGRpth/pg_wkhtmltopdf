@@ -1,7 +1,7 @@
 #include <postgres.h>
 
 #include <fmgr.h>
-//#include <utils/builtins.h>
+#include <utils/builtins.h>
 #include <wkhtmltox/pdf.h>
 
 #define EXTENSION(function) Datum (function)(PG_FUNCTION_ARGS); PG_FUNCTION_INFO_V1(function); Datum (function)(PG_FUNCTION_ARGS)
