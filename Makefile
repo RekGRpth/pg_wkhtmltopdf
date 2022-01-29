@@ -1,14 +1,9 @@
+$(OBJS): Makefile
+DATA = pg_wkhtmltopdf--1.0.sql
 EXTENSION = pg_wkhtmltopdf
 MODULE_big = $(EXTENSION)
-
-PG_CONFIG = pg_config
 OBJS = $(EXTENSION).o
-DATA = pg_wkhtmltopdf--1.0.sql
-
-LIBS += -lwkhtmltox
-SHLIB_LINK := $(LIBS)
-
-PGXS := $(shell $(PG_CONFIG) --pgxs)
+PG_CONFIG = pg_config
+PGXS = $(shell $(PG_CONFIG) --pgxs)
+SHLIB_LINK = -lwkhtmltox
 include $(PGXS)
-
-$(OBJS): Makefile
