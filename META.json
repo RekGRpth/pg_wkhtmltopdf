@@ -2,13 +2,13 @@
     "name": "pg_wkhtmltopdf",
     "abstract": "PostgreSQL wkhtmltopdf",
     "description": "PostgreSQL implementation of Convert HTML to PDF using Webkit (QtWebKit).",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "maintainer": "RekGRpth <rekgrpth@gmail.com>",
     "license": "mit",
     "provides": {
         "pg_wkhtmltopdf": {
             "file": "pg_wkhtmltopdf--1.0.sql",
-            "version": "1.0.0"
+            "version": "1.0.1"
         }
     },
     "resources": {
